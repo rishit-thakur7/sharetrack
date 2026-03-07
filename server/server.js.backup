@@ -1,0 +1,78 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:5174",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// MongoDB connection
+const MONGODB_URI = 'mongodb://localhost:27017/location-sharing';
+
+console.log('Connecting to MongoDB...');
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB successfully');
+  })
+  .catch((err) => {
+    console.log('MongoDB connection error:');
+    console.log(err.message);
+  });
+
+// Basic route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Location Sharing API',
+    status: 'running',
+    port: 7000
+  });
+});
+
+app.get('/test', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    time: new Date().toISOString() 
+  });
+});
+
+// Socket.io connection
+io.on('connection', (socket) => {
+  console.log('New client connected: ' + socket.id);
+
+  socket.on('user-join', (data) => {
+    console.log('User joined:');
+    console.log('ID:', data.userId);
+    console.log('Name:', data.name);
+  });
+
+  socket.on('location-update', (data) => {
+    console.log('Location update from:', data.userId);
+    socket.broadcast.emit('friend-location', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected: ' + socket.id);
+  });
+});
+
+// Start server
+const PORT = 7000;
+server.listen(PORT, () => {
+  console.log('=================================');
+  console.log('Server is running!');
+  console.log('Port: ' + PORT);
+  console.log('URL: http://localhost:' + PORT);
+  console.log('=================================');
+});

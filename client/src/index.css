@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+.glass-card {
+  @apply glass rounded-2xl shadow-2xl hover:border-white/20 transition-all duration-300;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 text-transparent bg-clip-text;
+  background-size: 200% auto;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glow {
+  box-shadow: 0 0 20px theme('colors.purple.500' / 30%);
+}
+
+.glow:hover {
+  box-shadow: 0 0 30px theme('colors.purple.500' / 50%);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% { 
+    opacity: 0.7;
+    filter: brightness(1.2);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(0) translateX(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(-20vh) translateX(10px) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-80vh) translateX(-10px) scale(0.5);
+  }
+  100% {
+    transform: translateY(-100vh) translateX(0) scale(0);
+    opacity: 0;
+  }
+}
+
+.absolute.w-1.h-1.bg-purple-500\/30 {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  z-index: 1;
+}
+
+.custom-marker {
+  background: transparent;
+  border: none;
+}
