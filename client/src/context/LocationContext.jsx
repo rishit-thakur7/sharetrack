@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from "react";
 import io from "socket.io-client";
 import toast from "react-hot-toast";
-import axios from "axios";
+import api from "../utils/api";
+
 
 const LocationContext = createContext();
 
@@ -11,12 +12,9 @@ export const useLocation = () => {
   return context;
 };
 
-const api = axios.create({ baseURL: "http://localhost:7000" });
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// The api utility is now imported from ../utils/api
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:7000";
+
 
 const normalizeUser = (u) => {
   if (!u) return null;
@@ -95,7 +93,8 @@ export const LocationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    const sock = io("http://localhost:7000", {
+    const sock = io(SOCKET_URL, {
+
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,

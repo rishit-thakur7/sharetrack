@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
+
 import { motion } from 'framer-motion';
 import { MapPin, Clock, Navigation, ArrowLeft, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +10,8 @@ const TripHistory = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+
+
 
   useEffect(() => {
     fetchTrips();
@@ -18,9 +20,8 @@ const TripHistory = () => {
 
   const fetchTrips = async () => {
     try {
-      const res = await axios.get('http://localhost:7000/api/trips/history?page=1', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/api/trips/history?page=1');
+
       if (Array.isArray(res.data)) setTrips(res.data);
       else if (res.data.trips) setTrips(res.data.trips);
       else setTrips([]);
@@ -32,9 +33,8 @@ const TripHistory = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('http://localhost:7000/api/trips/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/api/trips/stats');
+
       setStats(res.data);
     } catch (error) {
       console.error('Error fetching stats:', error);

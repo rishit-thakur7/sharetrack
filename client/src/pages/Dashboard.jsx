@@ -8,7 +8,8 @@ import ChatList from '../components/ChatList';
 import { useLocation } from '../context/LocationContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useChat } from '../context/ChatContext';
-import axios from 'axios';
+import api from '../utils/api';
+
 import {
   MapPin, Users, Clock, Share2, UserPlus, LogOut,
   Menu, Bell, ChevronRight, Home, ChevronLeft, MessageCircle, X, RefreshCw
@@ -81,14 +82,14 @@ const Dashboard = () => {
     try {
       const tripPayload = { destination, startLocation: { lat: currentLocation[0], lng: currentLocation[1] }, startTime: new Date().toISOString(), sharedWith: friends.filter(f => f.online).map(f => f.id), route: routeCoords || null, distance: parseFloat(distance) || 0, duration: parseInt(eta) || 0 };
       shareTrip(tripPayload);
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:7000/api/trips/save', {
+      await api.post('/api/trips/save', {
         destination: { name: destination.name, lat: destination.lat, lng: destination.lng },
         startLocation: { lat: currentLocation[0], lng: currentLocation[1], name: 'Your Location' },
         distance: parseFloat(distance) || 0, duration: parseInt(eta) || 0,
         sharedWith: friends.filter(f => f.online).map(f => f.id),
         notes: `Trip to ${destination.name}`, route: {}
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
+
       toast.success('Trip shared! Friends can now see your route live.');
     } catch (error) {
       console.error('Error saving trip:', error);

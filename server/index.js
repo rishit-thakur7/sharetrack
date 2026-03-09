@@ -10,12 +10,22 @@ const tripRoutes = require('./routes/trips');
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
 app.use(express.json());
 
-mongoose.connect('mongodb://127.0.0.1:27018/location-sharing', {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27018/location-sharing';
+
+mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000,
 })
+
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB:', err.message));
 
@@ -37,9 +47,10 @@ app.get('/api/test', async (req, res) => {
 });
 
 const io = socketIo(server, {
-  cors: { origin: ['http://localhost:5173', 'http://localhost:5174'], methods: ['GET', 'POST'], credentials: true },
+  cors: { origin: allowedOrigins, methods: ['GET', 'POST'], credentials: true },
   transports: ['polling', 'websocket']
 });
+
 
 // socketId → { userId, name, email, location }
 const connectedUsers = new Map();
@@ -241,7 +252,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
-const PORT = 7000;
+const PORT = process.env.PORT || 7000;
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log('\n' + '='.repeat(50));
   console.log('✅ SERVER STARTED on port', PORT);

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { MapPin, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { MapPin, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import api from '../utils/api';
+
 import { useLocation } from '../context/LocationContext';
 
 const Auth = () => {
@@ -11,7 +11,9 @@ const Auth = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const { login } = useLocation();
 
@@ -24,8 +26,8 @@ const Auth = () => {
       const data = isLogin ? { email, password } : { name, email, password };
 
       console.log('Sending auth request:', { endpoint, data });
+      const response = await api.post(endpoint, data);
 
-      const response = await axios.post(`http://localhost:7000${endpoint}`, data);
 
       console.log('Auth response:', response.data);
 
@@ -172,14 +174,22 @@ const Auth = () => {
               >
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-zinc-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
+                  className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg pl-10 pr-12 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </motion.div>
+
 
               <motion.button
                 variants={itemVariants}
