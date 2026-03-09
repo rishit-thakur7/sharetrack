@@ -132,8 +132,9 @@ const Landing = () => {
               </>
             ) : (
               <>
-                <button className="mob-btn" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }}>Login</button>
-                <button className="mob-btn" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }} style={{ color: '#7dd3fc', borderColor: 'rgba(56,189,248,0.2)', background: 'rgba(56,189,248,0.06)' }}>Sign Up Free</button>
+                <button className="mob-btn" onClick={() => { navigate('/auth', { state: { screen: 'login' } }); setMobileMenuOpen(false); }}>Login</button>
+                <button className="mob-btn" onClick={() => { navigate('/auth', { state: { screen: 'signup' } }); setMobileMenuOpen(false); }} style={{ color: '#7dd3fc', borderColor: 'rgba(56,189,248,0.2)', background: 'rgba(56,189,248,0.06)' }}>Sign Up Free</button>
+
               </>
             )}
           </div>
@@ -169,10 +170,11 @@ const Landing = () => {
                 </>
               ) : (
                 <>
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/auth')}
+                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/auth', { state: { screen: 'login' } })}
                     style={{ padding: '9px 20px', background: 'transparent', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 12, color: '#94a3b8', fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>Login</motion.button>
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/auth')} className="btn-primary"
+                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => navigate('/auth', { state: { screen: 'signup' } })} className="btn-primary"
                     style={{ padding: '9px 20px', borderRadius: 12, color: '#e2e8f0', fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}>Sign Up Free</motion.button>
+
                 </>
               )}
             </div>

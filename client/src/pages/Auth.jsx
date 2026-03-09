@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation as useRouteLocation } from 'react-router-dom';
+
 import { motion } from 'framer-motion';
 import { MapPin, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -8,7 +9,17 @@ import api from '../utils/api';
 import { useLocation } from '../context/LocationContext';
 
 const Auth = () => {
+  const routeLocation = useRouteLocation();
   const [isLogin, setIsLogin] = useState(true);
+
+  useEffect(() => {
+    if (routeLocation.state?.screen === 'signup') {
+      setIsLogin(false);
+    } else if (routeLocation.state?.screen === 'login') {
+      setIsLogin(true);
+    }
+  }, [routeLocation.state]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
