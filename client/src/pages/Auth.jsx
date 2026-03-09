@@ -150,12 +150,14 @@ const Auth = () => {
               {!isLogin && (
                 <motion.div
                   variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
                   className="relative"
                 >
                   <User className="absolute left-3 top-3 w-5 h-5 text-zinc-500" />
                   <input
                     type="text"
-                    placeholder="Full Name"
+                    placeholder="Username"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
@@ -163,6 +165,7 @@ const Auth = () => {
                   />
                 </motion.div>
               )}
+
 
 
               <motion.div
@@ -235,7 +238,7 @@ const Auth = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setName(''); 
+                  setName('');
                 }}
                 className="text-zinc-400 hover:text-white transition-colors font-medium"
               >
