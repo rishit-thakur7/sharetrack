@@ -20,7 +20,7 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 app.use(express.json());
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27018/location-sharing';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27018/location-sharing';
 
 mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000,
