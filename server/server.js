@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
@@ -12,16 +11,8 @@ const tripRoutes = require('./routes/trips');
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:4173',
-  process.env.FRONTEND_URL,
-  'https://sharetrack-74206fq8c-rishit-thakur7s-projects.vercel.app'
-].filter(Boolean);
-
-app.use(cors({ origin: allowedOrigins, credentials: true }));
-
+// ✅ Allow all origins (fixes CORS for Vercel deployment)
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 console.log('🔄 Connecting to MongoDB...');
@@ -33,7 +24,6 @@ mongoose.connect(MONGODB_URI)
     console.error('❌ MongoDB error:', err.message);
     console.log('💡 Make sure MongoDB is running on port 27018 or check MONGODB_URI');
   });
-
 
 mongoose.connection.on('error', err => console.error('MongoDB error:', err));
 mongoose.connection.on('disconnected', () => console.log('MongoDB disconnected'));
@@ -54,13 +44,12 @@ app.get('/', (req, res) => {
 
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true,
     methods: ['GET', 'POST'],
     credentials: true
   },
   transports: ['polling', 'websocket']
 });
-
 
 const userSockets = new Map();
 const connectedUsers = new Map();
@@ -122,15 +111,11 @@ io.on('connection', (socket) => {
     socket.userName = name;
 
     socket.broadcast.emit('friend-online', { userId: String(userId), name, timestamp: Date.now() });
-
-    // Send correct friends list to the joining user from DB
     sendFriendListUpdate(String(userId));
   });
 
   socket.on('sync-friends', async () => {
-    if (socket.userId) {
-      await sendFriendListUpdate(socket.userId);
-    }
+    if (socket.userId) await sendFriendListUpdate(socket.userId);
   });
 
   socket.on('location-update', (data) => {
@@ -160,13 +145,7 @@ io.on('connection', (socket) => {
     }
 
     const sharedWith = tripData.sharedWith || [];
-
-    const payload = {
-      userId: String(userId),
-      userName,
-      tripData,
-      timestamp: Date.now()
-    };
+    const payload = { userId: String(userId), userName, tripData, timestamp: Date.now() };
 
     if (sharedWith.length > 0) {
       sharedWith.forEach(friendId => {
@@ -174,9 +153,6 @@ io.on('connection', (socket) => {
         if (fSocketId) {
           io.to(fSocketId).emit('trip-shared', payload);
           io.to(fSocketId).emit('friend-trip', payload);
-          console.log('  -> sent to friend', friendId);
-        } else {
-          console.log('  -> friend', friendId, 'is offline');
         }
       });
     } else {
@@ -192,23 +168,10 @@ io.on('connection', (socket) => {
     const recipientSocketId = getSocket(String(toUserId));
 
     if (recipientSocketId) {
-      io.to(recipientSocketId).emit('receive-message', {
-        fromUserId,
-        fromUserName,
-        message,
-        timestamp,
-        messageId
-      });
+      io.to(recipientSocketId).emit('receive-message', { fromUserId, fromUserName, message, timestamp, messageId });
       socket.emit('message-delivered', { toUserId, messageId, timestamp: Date.now() });
-      console.log('✅ Message delivered to', toUserId);
     } else {
-      console.log('⚠️  Recipient offline:', toUserId);
-      socket.emit('message-delivered', {
-        toUserId,
-        messageId,
-        error: 'User offline',
-        timestamp: Date.now()
-      });
+      socket.emit('message-delivered', { toUserId, messageId, error: 'User offline', timestamp: Date.now() });
     }
   });
 
@@ -226,8 +189,6 @@ io.on('connection', (socket) => {
 
   socket.on('send-friend-request', (data) => {
     const { fromUserId, fromUserName, toUserId } = data;
-    console.log('📨 Friend request:', fromUserId, '->', toUserId);
-
     const recipientSocketId = getSocket(String(toUserId));
     if (recipientSocketId) {
       io.to(recipientSocketId).emit('friend-request-received', {
@@ -240,8 +201,6 @@ io.on('connection', (socket) => {
 
   socket.on('accept-friend-request', async (data) => {
     const { fromUserId, fromUserName, toUserId } = data;
-    console.log('✅ Accepted:', fromUserId, 'accepted request from', toUserId);
-
     const requesterSocketId = getSocket(String(toUserId));
     if (requesterSocketId) {
       io.to(requesterSocketId).emit('friend-request-accepted', {
@@ -250,8 +209,6 @@ io.on('connection', (socket) => {
         timestamp: Date.now()
       });
     }
-
-    // Refresh friend lists for both users
     await sendFriendListUpdate(String(fromUserId));
     await sendFriendListUpdate(String(toUserId));
   });
