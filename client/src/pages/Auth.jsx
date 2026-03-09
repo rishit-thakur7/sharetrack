@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../utils/api';
 
 import { useLocation } from '../context/LocationContext';
