@@ -213,7 +213,7 @@ const Auth = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setName(''); // Clear name when switching
+                  setName(''); 
                 }}
                 className="text-zinc-400 hover:text-white transition-colors font-medium"
               >
