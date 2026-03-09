@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
