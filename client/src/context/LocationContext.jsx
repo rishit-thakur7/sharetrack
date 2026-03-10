@@ -13,7 +13,7 @@ export const useLocation = () => {
 };
 
 // The api utility is now imported from ../utils/api
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:7000";
+const SOCKET_URL = import.meta.env.VITE_API_URL;
 
 
 const normalizeUser = (u) => {
