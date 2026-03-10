@@ -14,6 +14,7 @@ export const useLocation = () => {
 
 // The api utility is now imported from ../utils/api
 const SOCKET_URL = import.meta.env.VITE_API_URL;
+console.log("SOCKET_URL:", SOCKET_URL);
 
 
 const normalizeUser = (u) => {
