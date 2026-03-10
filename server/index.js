@@ -144,40 +144,119 @@ io.on('connection', (socket) => {
     await notifyFriendsOfStatusChange(uid, name, true);
   });
 
-  socket.on('location-update', (data) => {
+  socket.on('location-update', async (data) => {
     const { userId, name, location } = data;
     if (connectedUsers.has(socket.id)) {
       connectedUsers.set(socket.id, { ...connectedUsers.get(socket.id), location });
     }
-    socket.broadcast.emit('friend-location', { userId, name, location, timestamp: Date.now() });
-  });
 
-  socket.on('share-trip', (data) => {
-    const { userId, userName, tripData } = data;
-    if (tripData?.sharedWith?.length > 0) {
-      tripData.sharedWith.forEach(fid => {
-        const sid = userSockets.get(String(fid));
-        if (sid) io.to(sid).emit('friend-trip', { userId, userName, tripData, timestamp: Date.now() });
+    // Secure broadcast: Only send to friends
+    try {
+      const Friend = require('./models/Friend');
+      const friendships = await Friend.find({
+        $or: [
+          { userId: String(userId), status: 'accepted' },
+          { friendId: String(userId), status: 'accepted' }
+        ]
       });
-    } else {
-      socket.broadcast.emit('friend-trip', { userId, userName, tripData, timestamp: Date.now() });
+
+      friendships.forEach(f => {
+        const targetId = f.userId.toString() === String(userId) ? f.friendId.toString() : f.userId.toString();
+        const targetSocket = userSockets.get(targetId);
+        if (targetSocket) {
+          io.to(targetSocket).emit('friend-location', { userId, name, location, timestamp: Date.now() });
+        }
+      });
+    } catch (err) {
+      console.error('Error in secure location-update:', err);
     }
   });
 
-  socket.on('send-message', (data) => {
+  socket.on('share-trip', async (data) => {
+    const { userId, userName, tripData } = data;
+
+    try {
+      const Friend = require('./models/Friend');
+      const friendships = await Friend.find({
+        $or: [
+          { userId: String(userId), status: 'accepted' },
+          { friendId: String(userId), status: 'accepted' }
+        ]
+      });
+
+      const friendIds = friendships.map(f =>
+        f.userId.toString() === String(userId) ? f.friendId.toString() : f.userId.toString()
+      );
+
+      if (tripData?.sharedWith?.length > 0) {
+        // Only send to those in sharedWith WHO ARE ALSO FRIENDS
+        tripData.sharedWith.forEach(fid => {
+          if (friendIds.includes(String(fid))) {
+            const sid = userSockets.get(String(fid));
+            if (sid) io.to(sid).emit('friend-trip', { userId, userName, tripData, timestamp: Date.now() });
+          }
+        });
+      } else {
+        // Broadcast only to friends
+        friendIds.forEach(fid => {
+          const sid = userSockets.get(fid);
+          if (sid) io.to(sid).emit('friend-trip', { userId, userName, tripData, timestamp: Date.now() });
+        });
+      }
+    } catch (err) {
+      console.error('Error in secure share-trip:', err);
+    }
+  });
+
+  socket.on('send-message', async (data) => {
     const { toUserId, fromUserId, fromUserName, message, timestamp, messageId } = data;
-    const sid = userSockets.get(String(toUserId));
-    if (sid) {
-      io.to(sid).emit('receive-message', { fromUserId, fromUserName, message, timestamp, messageId });
-      socket.emit('message-delivered', { toUserId, messageId, timestamp: Date.now() });
-    } else {
-      socket.emit('message-delivered', { toUserId, messageId, error: 'User offline', timestamp: Date.now() });
+
+    try {
+      const Friend = require('./models/Friend');
+      const areFriends = await Friend.findOne({
+        $or: [
+          { userId: String(fromUserId), friendId: String(toUserId), status: 'accepted' },
+          { userId: String(toUserId), friendId: String(fromUserId), status: 'accepted' }
+        ]
+      });
+
+      if (!areFriends) {
+        socket.emit('message-delivered', { toUserId, messageId, error: 'Not friends', timestamp: Date.now() });
+        return;
+      }
+
+      const sid = userSockets.get(String(toUserId));
+      if (sid) {
+        io.to(sid).emit('receive-message', { fromUserId, fromUserName, message, timestamp, messageId });
+        socket.emit('message-delivered', { toUserId, messageId, delivered: true, timestamp: Date.now() });
+      } else {
+        socket.emit('message-delivered', { toUserId, messageId, error: 'User offline', timestamp: Date.now() });
+      }
+    } catch (err) {
+      console.error('Error in secure send-message:', err);
     }
   });
 
-  socket.on('typing', (data) => {
-    const sid = userSockets.get(String(data.toUserId));
-    if (sid) io.to(sid).emit('user-typing', { userId: socket.userId, userName: socket.userName, isTyping: data.isTyping });
+  socket.on('typing', async (data) => {
+    const { toUserId, isTyping } = data;
+    const fromUserId = socket.userId;
+
+    try {
+      const Friend = require('./models/Friend');
+      const areFriends = await Friend.findOne({
+        $or: [
+          { userId: String(fromUserId), friendId: String(toUserId), status: 'accepted' },
+          { userId: String(toUserId), friendId: String(fromUserId), status: 'accepted' }
+        ]
+      });
+
+      if (!areFriends) return;
+
+      const sid = userSockets.get(String(toUserId));
+      if (sid) io.to(sid).emit('user-typing', { userId: fromUserId, userName: socket.userName, isTyping });
+    } catch (err) {
+      console.error('Error in secure typing:', err);
+    }
   });
 
   socket.on('send-friend-request', (data) => {

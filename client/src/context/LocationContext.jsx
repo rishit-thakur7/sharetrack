@@ -192,7 +192,7 @@ export const LocationProvider = ({ children }) => {
               : f
           );
         }
-        return [...prev, { id: String(data.userId), name: data.name, location: data.location, online: true }];
+        return prev; // Do not auto-add strangers
       });
     });
 

@@ -42,10 +42,11 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-const Dashboard = () => {
+const Dashboard = ({ showFriendsInitial = false }) => {
   const { currentLocation, friends, isSharing, userName, user, isConnected, startSharing, stopSharing, shareTrip, logout } = useLocation();
   const { unreadCount, toggleNotifications } = useNotifications();
   const { openChat, unreadMessages } = useChat();
+  const routeLocation = useNavigate(); // Should be useLocation from wouter/react-router but we have it as navigate
 
   const [destination, setDestination] = useState(null);
   const [eta, setEta] = useState(null);
@@ -53,14 +54,14 @@ const Dashboard = () => {
   const [distance, setDistance] = useState(null);
   const [routeCoords, setRouteCoords] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showFriendSearch, setShowFriendSearch] = useState(false);
+  const [showFriendSearch, setShowFriendSearch] = useState(showFriendsInitial);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showChatList, setShowChatList] = useState(false);
   const [savingTrip, setSavingTrip] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-    useEffect(() => { if (!isMobile) setIsMobileMenuOpen(false); }, [isMobile]);
+  useEffect(() => { if (!isMobile) setIsMobileMenuOpen(false); }, [isMobile]);
 
   const handleRouteFound = (routeData) => {
     setEta(routeData.duration);

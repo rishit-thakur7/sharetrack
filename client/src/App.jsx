@@ -45,6 +45,11 @@ function App() {
                     <Dashboard />
                   </ProtectedRoute>
                 } />
+                <Route path="/friends" element={
+                  <ProtectedRoute>
+                    <Dashboard showFriendsInitial={true} />
+                  </ProtectedRoute>
+                } />
                 <Route path="/trips" element={
                   <ProtectedRoute>
                     <TripHistory />
